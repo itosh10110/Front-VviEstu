@@ -1,389 +1,102 @@
 {
-  "Angular Standalone Component": {
-    "prefix": "ng-comp",
-    "body": [
-      "import { Component } from '@angular/core';",
-      "import { CommonModule } from '@angular/common';",
-      "",
-      "@Component({",
-      "  selector: 'app-${1:nombre}',",
-      "  standalone: true,",
-      "  imports: [CommonModule],",
-      "  template: ``,",
-      "  styles: []",
-      "})",
-      "export class ${1:Nombre}Component {}"
-    ],
-    "description": "Genera un componente standalone básico vacío"
-  },
-  "Angular Service": {
-    "prefix": "ng-serv",
-    "body": [
-      "import { Injectable, inject, signal } from '@angular/core';",
-      "import { HttpClient } from '@angular/common/http';",
-      "import { Observable, tap } from 'rxjs';",
-      "import { environment } from '@env/environment';",
-      "",
-      "@Injectable({",
-      "  providedIn: 'root'",
-      "})",
-      "export class ${1:Nombre}Service {",
-      "  private http = inject(HttpClient);",
-      "  private apiUrl = `${environment.apiUrl}/${2:products}`;",
-      "",
-      "  // Signals para ESTADO COMPARTIDO",
-      "  private _items = signal<any[]>([]);",
-      "  items = this._items.asReadonly();",
-      "",
-      "  // GET - Obtener todos",
-      "  getAll(): Observable<any[]> {",
-      "    return this.http.get<any[]>(this.apiUrl).pipe(",
-      "      tap(data => this._items.set(data))",
-      "    );",
-      "  }",
-      "",
-      "  // GET - Obtener por ID",
-      "  getById(id: number): Observable<any> {",
-      "    return this.http.get<any>(`${this.apiUrl}/${id}`);",
-      "  }",
-      "",
-      "  // POST - Crear",
-      "  create(data: any): Observable<any> {",
-      "    return this.http.post<any>(this.apiUrl, data).pipe(",
-      "      tap(newItem => {",
-      "        this._items.update(current => [...current, newItem]);",
-      "      })",
-      "    );",
-      "  }",
-      "",
-      "  // PUT - Actualizar",
-      "  update(id: number, data: any): Observable<any> {",
-      "    return this.http.put<any>(`${this.apiUrl}/${id}`, data).pipe(",
-      "      tap(updatedItem => {",
-      "        this._items.update(current =>",
-      "          current.map(item => item.id === id ? updatedItem : item)",
-      "        );",
-      "      })",
-      "    );",
-      "  }",
-      "",
-      "  // DELETE - Eliminar",
-      "  delete(id: number): Observable<any> {",
-      "    return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(",
-      "      tap(() => {",
-      "        this._items.update(current => current.filter(item => item.id !== id));",
-      "      })",
-      "    );",
-      "  }",
-      "}"
-    ],
-    "description": "Genera un servicio con signals, tap y CRUD completo"
-  },
-  "Angular Interceptor": {
-    "prefix": "ng-interceptor",
-    "body": [
-      "import { Injectable } from '@angular/core';",
-      "import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';",
-      "import { Observable } from 'rxjs';",
-      "",
-      "@Injectable()",
-      "export class ${1:Nombre}Interceptor implements HttpInterceptor {",
-      "  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {",
-      "    return next.handle(req);",
-      "  }",
-      "}"
-    ],
-    "description": "Genera un HTTP Interceptor básico vacío"
-  },
-  "Angular Auth Interceptor": {
-    "prefix": "ng-interceptor-auth",
-    "body": [
-      "import { HttpInterceptorFn } from '@angular/common/http';",
-      "import { inject } from '@angular/core';",
-      "import { AuthService } from '../services/auth.service';",
-      "",
-      "export const authInterceptor: HttpInterceptorFn = (req, next) => {",
-      "  const authService = inject(AuthService);",
-      "  const token = authService.getToken();",
-      "",
-      "  // Si hay token, agregar Authorization header",
-      "  if (token) {",
-      "    const clonedRequest = req.clone({",
-      "      setHeaders: {",
-      "        Authorization: `Bearer ${token}`",
-      "      }",
-      "    });",
-      "    return next(clonedRequest);",
-      "  }",
-      "",
-      "  return next(req);",
-      "};"
-    ],
-    "description": "Genera un Interceptor funcional para agregar token JWT"
-  },
-  "Angular Error Interceptor": {
-    "prefix": "ng-interceptor-error",
-    "body": [
-      "import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';",
-      "import { inject } from '@angular/core';",
-      "import { Router } from '@angular/router';",
-      "import { catchError, throwError } from 'rxjs';",
-      "import { AuthService } from '../services/auth.service';",
-      "",
-      "export const errorInterceptor: HttpInterceptorFn = (req, next) => {",
-      "  const router = inject(Router);",
-      "  const authService = inject(AuthService);",
-      "",
-      "  return next(req).pipe(",
-      "    catchError((error: HttpErrorResponse) => {",
-      "      let errorMessage = 'Ocurrió un error';",
-      "",
-      "      if (error.error instanceof ErrorEvent) {",
-      "        // Error del cliente",
-      "        errorMessage = `Error: ${error.error.message}`;",
-      "      } else {",
-      "        // Error del servidor",
-      "        errorMessage = `Error ${error.status}: ${error.error?.message || error.message}`;",
-      "",
-      "        // Si el error es 401 (Unauthorized), hacer logout",
-      "        if (error.status === 401) {",
-      "          authService.logout();",
-      "          router.navigate(['/login']);",
-      "        }",
-      "",
-      "        // Si el error es 403 (Forbidden), redirigir",
-      "        if (error.status === 403) {",
-      "          router.navigate(['/']);",
-      "        }",
-      "      }",
-      "",
-      "      console.error(errorMessage);",
-      "      return throwError(() => new Error(errorMessage));",
-      "    })",
-      "  );",
-      "};"
-    ],
-    "description": "Genera un Interceptor funcional para manejo de errores HTTP con logout automático"
-  },
-  "Angular Guard (CanActivate)": {
-    "prefix": "ng-guard",
-    "body": [
-      "import { inject } from '@angular/core';",
-      "import { CanActivateFn, Router } from '@angular/router';",
-      "",
-      "export const ${1:auth}Guard: CanActivateFn = (route, state) => {",
-      "  const router = inject(Router);",
-      "  ",
-      "  // Tu lógica de validación aquí",
-      "  const isAuthenticated = ${2:false}; // Ejemplo",
-      "  ",
-      "  if (isAuthenticated) {",
-      "    return true;",
-      "  }",
-      "  ",
-      "  return router.createUrlTree(['/${3:login}']);",
-      "};"
-    ],
-    "description": "Genera un Guard funcional con CanActivateFn"
-  },
-  "Angular Auth Guard": {
-    "prefix": "ng-guard-auth",
-    "body": [
-      "import { inject } from '@angular/core';",
-      "import { Router, CanActivateFn } from '@angular/router';",
-      "import { AuthService } from '../services/auth.service';",
-      "",
-      "export const authGuard: CanActivateFn = (route, state) => {",
-      "  const authService = inject(AuthService);",
-      "  const router = inject(Router);",
-      "",
-      "  if (authService.isAuthenticated()) {",
-      "    return true;",
-      "  }",
-      "",
-      "  // Redirigir al login si no está autenticado",
-      "  router.navigate(['/login'], {",
-      "    queryParams: { returnUrl: state.url }",
-      "  });",
-      "  return false;",
-      "};"
-    ],
-    "description": "Genera un Guard de autenticación con AuthService y returnUrl"
-  },
-  "Angular Admin Guard": {
-    "prefix": "ng-guard-admin",
-    "body": [
-      "import { inject } from '@angular/core';",
-      "import { Router, CanActivateFn } from '@angular/router';",
-      "import { AuthService } from '../services/auth.service';",
-      "",
-      "export const adminGuard: CanActivateFn = (route, state) => {",
-      "  const authService = inject(AuthService);",
-      "  const router = inject(Router);",
-      "",
-      "  if (authService.isAuthenticated() && authService.isAdmin()) {",
-      "    return true;",
-      "  }",
-      "",
-      "  // Redirigir si no es admin",
-      "  router.navigate(['/']);",
-      "  return false;",
-      "};"
-    ],
-    "description": "Genera un Guard para verificar autenticación y rol de administrador"
-  },
-  "Angular Guard (CanActivateChild)": {
-    "prefix": "ng-guard-child",
-    "body": [
-      "import { inject } from '@angular/core';",
-      "import { CanActivateChildFn, Router } from '@angular/router';",
-      "",
-      "export const ${1:auth}ChildGuard: CanActivateChildFn = (route, state) => {",
-      "  const router = inject(Router);",
-      "  ",
-      "  // Tu lógica de validación aquí",
-      "  const hasPermission = ${2:false}; // Ejemplo",
-      "  ",
-      "  if (hasPermission) {",
-      "    return true;",
-      "  }",
-      "  ",
-      "  return router.createUrlTree(['/${3:unauthorized}']);",
-      "};"
-    ],
-    "description": "Genera un Guard para rutas hijas con CanActivateChildFn"
-  },
-  "Angular Guard (CanDeactivate)": {
-    "prefix": "ng-guard-deactivate",
-    "body": [
-      "import { CanDeactivateFn } from '@angular/router';",
-      "",
-      "export interface CanComponentDeactivate {",
-      "  canDeactivate: () => boolean;",
-      "}",
-      "",
-      "export const ${1:unsaved}Guard: CanDeactivateFn<CanComponentDeactivate> = (component) => {",
-      "  if (component.canDeactivate()) {",
-      "    return true;",
-      "  }",
-      "  ",
-      "  return confirm('¿Estás seguro de que quieres salir sin guardar los cambios?');",
-      "};"
-    ],
-    "description": "Genera un Guard para prevenir salida de ruta sin guardar"
-  },
-  "Angular Guard (CanMatch)": {
-    "prefix": "ng-guard-match",
-    "body": [
-      "import { inject } from '@angular/core';",
-      "import { CanMatchFn, Router } from '@angular/router';",
-      "",
-      "export const ${1:role}Guard: CanMatchFn = (route, segments) => {",
-      "  const router = inject(Router);",
-      "  ",
-      "  // Tu lógica de validación aquí",
-      "  const hasRole = ${2:false}; // Ejemplo",
-      "  ",
-      "  if (hasRole) {",
-      "    return true;",
-      "  }",
-      "  ",
-      "  return router.createUrlTree(['/${3:forbidden}']);",
-      "};"
-    ],
-    "description": "Genera un Guard para validar si una ruta puede cargarse"
-  },
-  "Angular Model/Interface": {
-    "prefix": "ng-model",
-    "body": [
-      "export interface ${1:Nombre} {",
-      "  id?: string;",
-      "}"
-    ],
-    "description": "Genera una interfaz/modelo básico vacío"
-  },
-  "Angular Routes": {
-    "prefix": "ng-routes",
-    "body": [
-      "import { Routes } from '@angular/router';",
-      "import { ${1:Main}Component } from './layout/${1:main}/${1:main}.component';",
-      "",
-      "export const routes: Routes = [",
-      "  {",
-      "    path: '',",
-      "    component: ${1:Main}Component,",
-      "    children: [",
-      "      {",
-      "        path: '${2:ruta}',",
-      "        loadChildren: () => import('./features/${2:ruta}/${2:ruta}.route').then(m => m.${2:RUTA}_ROUTES)",
-      "      },",
-      "      {",
-      "        path: '${3:ruta2}',",
-      "        loadChildren: () => import('./features/${3:ruta2}/${3:ruta2}.route').then(m => m.${3:RUTA2}_ROUTES)",
-      "      }",
-      "    ]",
-      "  },",
-      "  {",
-      "    path: '**',",
-      "    redirectTo: '${4:home}'",
-      "  }",
-      "];"
-    ],
-    "description": "Genera un archivo de rutas con MainComponent y loadChildren"
-  },
-  "Angular Routes with loadComponent": {
-    "prefix": "ng-routes-lazy",
-    "body": [
-      "import { Routes } from '@angular/router';",
-      "",
-      "export const routes: Routes = [",
-      "  {",
-      "    path: '${1:ruta}',",
-      "    loadComponent: () => import('./components/${1:ruta}/${1:ruta}.component').then(m => m.${2:Nombre}Component)",
-      "  }",
-      "];"
-    ],
-    "description": "Genera rutas con lazy loading usando loadComponent"
-  },
-  "Angular Routes with Guard": {
-    "prefix": "ng-routes-guard",
-    "body": [
-      "import { Routes } from '@angular/router';",
-      "import { ${1:auth}Guard } from '@core/guards/${1:auth}.guard';",
-      "",
-      "export const routes: Routes = [",
-      "  {",
-      "    path: '${2:ruta}',",
-      "    loadComponent: () => import('./components/${2:ruta}/${2:ruta}.component').then(m => m.${3:Nombre}Component),",
-      "    canActivate: [${1:auth}Guard]",
-      "  }",
-      "];"
-    ],
-    "description": "Genera rutas con Guard y lazy loading"
-  },
-  "Angular Environment": {
-    "prefix": "ng-env",
-    "body": [
-      "export const environment = {",
-      "  production: ${1:false},",
-      "  apiUrl: '${2:http://localhost:3000}',",
-      "  apiKey: '${3:your-api-key}'",
-      "};"
-    ],
-    "description": "Genera un archivo de environment básico"
-  },
-  "Angular Environment Production": {
-    "prefix": "ng-env-prod",
-    "body": [
-      "export const environment = {",
-      "  production: true,",
-      "  apiUrl: '${1:https://api.example.com}',",
-      "  apiKey: '${2:your-api-key}'",
-      "};"
-    ],
-    "description": "Genera un archivo de environment para producción"
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "temp-config": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist/temp-config",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/custom-theme.scss",
+              "src/styles.css"
+            ],
+            "scripts": [],
+            "server": "src/main.server.ts",
+            "outputMode": "server",
+            "ssr": {
+              "entry": "src/server.ts"
+            }
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "temp-config:build:production"
+            },
+            "development": {
+              "buildTarget": "temp-config:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "tsconfig.spec.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": []
+          }
+        }
+      }
+    }
   }
 }
-
-
-
