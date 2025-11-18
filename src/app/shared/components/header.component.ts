@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   template: `
   <header class="header-container">
       <div class="header-logo">
@@ -103,4 +104,12 @@ import { CommonModule } from '@angular/common';
     }
   `]
 })
-export class HeaderComponent {}
+export class HeaderComponent {
+  navItems = [
+    { label: 'Quiénes somos', path: '/quienes-somos' },
+    { label: 'Preguntas frecuentes', path: '/faq' },
+    { label: 'Contáctanos', path: '/contacto' },
+  ];
+
+  primaryButton = { label: 'Únete Ahora', path: '/registro' };
+}
