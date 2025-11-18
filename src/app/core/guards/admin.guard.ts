@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+/*import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
@@ -13,4 +13,4 @@ export const adminGuard: CanActivateFn = (route, state) => { //maneja estados so
   // Redirigir si no es admin
   router.navigate(['/']); //redirije al home si no es admin
   return false;
-};
+};*/

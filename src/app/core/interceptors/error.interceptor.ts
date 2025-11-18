@@ -1,4 +1,5 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+//x alguna razon bota error
+/*import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
@@ -35,4 +36,4 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       return throwError(() => new Error(errorMessage));
     })
   );
-};
+};*/
